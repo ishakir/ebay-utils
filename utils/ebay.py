@@ -63,7 +63,7 @@ def update_item_description(api, item_id, description):
     update_response = api.execute('ReviseItem', {
         'Item': {
             'ItemID': item_id,
-            'Description': description
+            'Description': "<![CDATA[{}]]>".format(description.encode('utf-8'))
         }    
     })
 

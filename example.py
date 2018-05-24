@@ -8,19 +8,20 @@ from utils.ebay import get_connection, get_all_item_ids, get_item_description, u
 from utils.description import fix_description
 
 
-def run(domain, max_items, accepted_item_ids, sleep_time):
+def run(domain, max_items, accepted_item_ids, sleep_time, dry_run):
     if domain != 'test':
         prompt_warning("Domain '{}' is not a testing environment".format(domain))
-    if max_items is None:
-        if not accepted_item_ids:
-            prompt_warning('This process will update every single listing')
-        if len(accepted_item_ids) > 5:
-            prompt_warning('This process will update {} listing(s)'.format(len(accepted_item_ids)))
-    if max_items > 5:
-        if not accepted_item_ids:
-            prompt_warning('This process will update {} listing(s)'.format(max_items))
-        else:
-            prompt_warning('This process will update {} listing(s)'.format(min([max_items, len(accepted_item_ids)])))
+    if not dry_run:
+        if max_items is None:
+            if not accepted_item_ids:
+                prompt_warning('This process will update every single listing')
+            elif len(accepted_item_ids) > 5:
+                prompt_warning('This process will update {} listing(s)'.format(len(accepted_item_ids)))
+        if max_items > 5:
+            if not accepted_item_ids:
+                prompt_warning('This process will update {} listing(s)'.format(max_items))
+            else:
+                prompt_warning('This process will update {} listing(s)'.format(min([max_items, len(accepted_item_ids)])))
 
     api = get_connection('test')
     item_ids = get_all_item_ids(api)
@@ -35,7 +36,23 @@ def run(domain, max_items, accepted_item_ids, sleep_time):
 
     for item_id in filtered_items:
         description = get_item_description(api, item_id)
-        update_item_description(api, item_id, fix_description(description))
+        new_description = fix_description(description)
+        if not dry_run:
+            update_item_description(api, item_id, new_description)
+        else:
+            print
+            print
+            print "Updating description:"
+            print
+            print
+            print "Old:"
+            print description
+            print
+            print
+            print "New:"
+            print new_description
+            print
+            print
         sleep(sleep_time)
 
 # TODO: Pass sleep time in (ask again if sleep time is too high)
@@ -45,8 +62,9 @@ if __name__ == '__main__':
     parser.add_argument('--sleep-time', type=int, required=True)
     parser.add_argument('--item-ids', nargs="*")
     parser.add_argument('--max-items', type=int)
+    parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
 
-    run(args.domain, args.max_items, args.item_ids)
+    run(args.domain, args.max_items, args.item_ids, args.sleep_time, args.dry_run)
 
     

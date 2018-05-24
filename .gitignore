@@ -1,2 +1,5 @@
 ebay.yaml
 *.pyc
+*.html
+.DS_Store
+examples/
